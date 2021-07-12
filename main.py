@@ -8,11 +8,11 @@ from dataset import BaseDataset
 from evaluator import Evaluator
 from model import VAE
 from trainer import Trainer
-from util import res_print
+from util import print_res
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    dataset = BaseDataset('data/', 'agame', separator=',')
+    dataset = BaseDataset('data/', 'ml-1m', separator='::')
 
     train_batcher = BaseBatcher(dataset, batch_size=512, shuffle=True)
     test_batcher = BaseBatcher(dataset, batch_size=1024, shuffle=True)
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=0)
 
     trainer = Trainer(train_batcher, model, optimizer)
-    evaluator = Evaluator(test_batcher, model, top_k=50)
+    evaluator = Evaluator(test_batcher, model, top_k=10)
 
     best_epoch = {
         'epoch': 0,
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         'recall': .0,
         'ndcg': .0,
     }
-    for epoch in range(1, 201):
+    for epoch in range(1, 101):
 
         train_start = time.time()
         loss = trainer.train()
@@ -43,7 +43,7 @@ if __name__ == '__main__':
         eval_time = time.time() - eval_start
 
         print('Epoch=%3d, Loss=%3d, Prec=%.4f, Recall=%.4f, NDCG=%.4f, Time=(%.4f + %.4f)'
-              % epoch, loss, prec, recall, ndcg, train_time, eval_time)
+              % (epoch, loss, prec, recall, ndcg, train_time, eval_time))
 
         if best_epoch['prec'] <= prec:
             best_epoch['epoch'] = epoch
@@ -51,5 +51,5 @@ if __name__ == '__main__':
             best_epoch['recall'] = recall
             best_epoch['ndcg'] = ndcg
 
-    res_print('Best Epoch: %3d, Prec: %.4f, Recall: %.4f, NDCG: %.4f'
+    print_res('Best Epoch: %3d, Prec: %.4f, Recall: %.4f, NDCG: %.4f'
               % (best_epoch['epoch'], best_epoch['prec'], best_epoch['recall'], best_epoch['ndcg']))

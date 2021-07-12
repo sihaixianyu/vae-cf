@@ -1,12 +1,9 @@
 import math
-import time
-from collections import OrderedDict
 
 import numpy as np
 import torch
 
 from batcher import BaseBatcher
-from util import Statistic
 from model import VAE
 
 
@@ -16,19 +13,14 @@ class Evaluator:
         self.model = model
         self.top_k = top_k
 
-        self.batch_size = batcher.batch_size
-        self.leave_k = batcher.dataset.leave_k
+        self.batch_num = self.batcher.batch_num
         self.train_matrix = batcher.dataset.train_matrix
         self.test_dict = batcher.dataset.test_dict
 
-        self.prec_stat = Statistic('{}@{}'.format('Prec', self.top_k))
-        self.recall_stat = Statistic('{}@{}'.format('Recall', self.top_k))
-        self.ndcg_stat = Statistic('{}@{}'.format('NDCG', self.top_k))
-
-    def evaluate(self) -> float:
-        start = time.time()
+    def evaluate(self) -> (float, float, float):
         self.model.eval()
 
+        total_prec, total_recall, total_ndcg = .0, .0, .0
         for uids in self.batcher:
             batch_matrix = self.train_matrix[uids]
             batch_tensor = torch.FloatTensor(batch_matrix).to(self.model.device)
@@ -40,13 +32,20 @@ class Evaluator:
                 # 排除掉已经交互过的项目
                 pred_matrix[np.nonzero(batch_matrix)] = float('-inf')
 
-            top_matrix = self.predict_top_mat(pred_matrix.astype(np.float32))
-            self.calc_matric(top_matrix.astype(np.int64), eval_dict)
+            top_matrix = self.predict_top(pred_matrix.astype(np.float64)).astype(np.int64)
+            batch_prec, batch_recall, batch_ndcg = self.calc_matric(top_matrix, eval_dict)
 
-        end = time.time()
-        return end - start
+            total_prec += batch_prec
+            total_recall += batch_recall
+            total_ndcg += batch_ndcg
 
-    def predict_top_mat(self, pred_matrix: np.ndarray) -> np.ndarray:
+        prec = total_prec / self.batch_num
+        recall = total_recall / self.batch_num
+        ndcg = total_ndcg / self.batch_num
+
+        return prec, recall, ndcg
+
+    def predict_top(self, pred_matrix: np.ndarray) -> np.ndarray:
         # 根据第k大的元素划分数据，前面的元素都大于它，后面的都小于它，返回划分后的数据索引
         top_item_idxs = np.argpartition(-pred_matrix, self.top_k, 1)[:, 0:self.top_k]
         # 此时的前top_k个元素不保证排序，我们通过原始索引获得原始值
@@ -58,25 +57,29 @@ class Evaluator:
 
         return sorted_item_idxs
 
-    def calc_matric(self, top_matrix: np.ndarray, eval_dict: dict):
+    def calc_matric(self, top_matrix: np.ndarray, eval_dict: dict) -> (float, float, float):
+        total_prec, total_recall, total_ndcg = .0, .0, .0
         for i, uid in enumerate(eval_dict):
             pred_items = top_matrix[i]
             real_items = eval_dict[uid]
 
             hit_items = [(i + 1, item) for i, item in enumerate(pred_items) if item in real_items]
 
-            idcg = 0.0
+            batch_idcg = 0.0
             for j in range(1, len(real_items) + 1):
-                idcg += 1 / math.log((j + 1), 2)
+                batch_idcg += 1 / math.log((j + 1), 2)
 
-            dcg = 0.0
+            batch_dcg = 0.0
             for k, item in hit_items:
-                dcg += 1 / math.log(k + 1, 2)
+                batch_dcg += 1 / math.log(k + 1, 2)
 
-            prec = len(hit_items) / self.top_k
-            recall = len(hit_items) / len(real_items)
-            ndcg = dcg / idcg
+            total_prec += len(hit_items) / self.top_k
+            total_recall += len(hit_items) / len(real_items)
+            total_ndcg += batch_dcg / batch_idcg
 
-            self.prec_stat.update(prec)
-            self.recall_stat.update(recall)
-            self.ndcg_stat.update(ndcg)
+        eval_num = len(eval_dict)
+        batch_prec = total_prec / eval_num
+        batch_recall = total_recall / eval_num
+        batch_ndcg = total_ndcg / eval_num
+
+        return batch_prec, batch_recall, batch_ndcg

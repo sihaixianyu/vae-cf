@@ -1,24 +1,22 @@
+from typing import List, Tuple
+
+
 class Statistic:
-    def __init__(self, name: str):
+    def __init__(self, name):
         self.name = name
-        self.history = []
-        self.sum = 0
-        self.cnt = 0
+        self.history: List[Tuple[int, float]] = []
 
-    def put(self, val: float):
-        self.history.append(val)
-        self.sum += val
-        self.cnt += 1
+    def record(self, epoch: int, value: float):
+        self.history.append((epoch, value))
 
-    @property
-    def mean(self):
-        return self.sum / self.cnt
+    def report_last(self) -> Tuple[int, float]:
+        return self.history[-1]
 
-    def __repr__(self):
-        return '%s: %.4f' % (self.name, self.mean)
+    def report_best(self) -> Tuple[int, float]:
+        return max(self.history, key=lambda x: x[-1])
 
 
-def res_print(content: str):
+def print_res(content: str):
     print('-' * 100)
     print(content)
     print('-' * 100)

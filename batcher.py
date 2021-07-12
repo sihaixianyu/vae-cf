@@ -10,6 +10,8 @@ class BaseBatcher:
         self.batch_size = batch_size
         self.shuffle = shuffle
 
+        self.batch_num = (dataset.user_num // batch_size) + 1
+
     def __len__(self):
         return len(self.dataset.user_num)
 

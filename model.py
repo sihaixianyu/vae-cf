@@ -29,7 +29,6 @@ class VAE(nn.Module):
             if i != len(self.enc_dims[:-1]) - 1:
                 self.encoder.append(nn.Tanh())
 
-        self.decoder = nn.ModuleList()
         for i, (d_in, d_out) in enumerate(zip(self.dec_dims[:-1], self.dec_dims[1:])):
             self.decoder.append(nn.Linear(d_in, d_out))
             if i != len(self.dec_dims[:-1]) - 1:

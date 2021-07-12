@@ -1,12 +1,10 @@
-import time
-
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.optim import Optimizer
 
 from batcher import BaseBatcher
 from model import VAE
-from util import Statistic
 
 
 class Trainer:
@@ -15,11 +13,13 @@ class Trainer:
         self.model = model
         self.optimizer = optimizer
 
+        self.batch_num = batcher.batch_num
         self.train_matrix = batcher.dataset.train_matrix
 
     def train(self) -> float:
         self.model.train()
 
+        total_loss = .0
         for uids in self.batcher:
             batch_matrix = self.train_matrix[uids]
             batch_tensor = torch.FloatTensor(batch_matrix).to(self.model.device)
@@ -29,20 +29,23 @@ class Trainer:
             else:
                 self.model.anneal = self.model.anneal_cap
 
-            self.train_per_batch(batch_tensor)
+            batch_loss = self.train_per_batch(batch_tensor)
+            total_loss += batch_loss
+
+        loss = total_loss / self.batch_num
 
         return loss
 
-    def train_per_batch(self, batch_tensor: torch.Tensor):
+    def train_per_batch(self, batch_tensor: torch.Tensor) -> float:
         self.optimizer.zero_grad()
 
-        y, kl_loss = self. model.forward(batch_tensor)
+        y, kl_loss = self.model.forward(batch_tensor)
         ce_loss = -(F.log_softmax(y, 1) * batch_tensor).sum(1).mean()
 
-        loss: torch.Tensor = ce_loss + kl_loss * self.model.anneal
-        loss.backward()
-
-        self.optimizer.step()
+        batch_loss: torch.Tensor = ce_loss + kl_loss * self.model.anneal
+        batch_loss.backward()
 
         self.model.update_cnt += 1
 
+        self.optimizer.step()
+        return batch_loss.detach().cpu().numpy().astype(np.float64)
