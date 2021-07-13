@@ -13,7 +13,6 @@ class Trainer:
         self.model = model
         self.optimizer = optimizer
 
-        self.batch_num = batcher.batch_num
         self.train_matrix = batcher.dataset.train_matrix
 
     def train(self) -> float:
@@ -32,7 +31,7 @@ class Trainer:
             batch_loss = self.train_per_batch(batch_tensor)
             total_loss += batch_loss
 
-        loss = total_loss / self.batch_num
+        loss = total_loss / len(self.batcher)
 
         return loss
 

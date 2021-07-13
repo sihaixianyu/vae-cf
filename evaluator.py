@@ -13,7 +13,6 @@ class Evaluator:
         self.model = model
         self.top_k = top_k
 
-        self.batch_num = self.batcher.batch_num
         self.train_matrix = batcher.dataset.train_matrix
         self.test_dict = batcher.dataset.test_dict
 
@@ -39,9 +38,9 @@ class Evaluator:
             total_recall += batch_recall
             total_ndcg += batch_ndcg
 
-        prec = total_prec / self.batch_num
-        recall = total_recall / self.batch_num
-        ndcg = total_ndcg / self.batch_num
+        prec = total_prec / len(self.batcher)
+        recall = total_recall / len(self.batcher)
+        ndcg = total_ndcg / len(self.batcher)
 
         return prec, recall, ndcg
 

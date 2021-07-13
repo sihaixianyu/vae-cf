@@ -1,5 +1,4 @@
 import numpy as np
-import torch
 
 from dataset import BaseDataset
 
@@ -10,10 +9,8 @@ class BaseBatcher:
         self.batch_size = batch_size
         self.shuffle = shuffle
 
-        self.batch_num = (dataset.user_num // batch_size) + 1
-
     def __len__(self):
-        return len(self.dataset.user_num)
+        return (self.dataset.user_num // self.batch_size) + 1
 
     def __iter__(self):
         shuffled_uids = np.random.permutation(self.dataset.user_num)
@@ -28,6 +25,4 @@ class BaseBatcher:
             else:
                 uids.append(uid)
                 cnt += 1
-                continue
-
-
+        yield uids
