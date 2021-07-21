@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from batcher import BaseBatcher
-from model import VAE
+from vae import VAE
 
 
 class Evaluator:

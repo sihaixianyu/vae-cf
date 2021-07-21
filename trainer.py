@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.optim import Optimizer
 
 from batcher import BaseBatcher
-from model import VAE
+from vae import VAE
 
 
 class Trainer:

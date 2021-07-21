@@ -8,9 +8,12 @@ from dataset import BaseDataset
 from evaluator import Evaluator
 from model import VAE
 from trainer import Trainer
-from util import print_res
+from util import save_user_embdding, print_res
 
 if __name__ == '__main__':
+    data_dir = 'data/'
+    data_name = 'ml-1m'
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     dataset = BaseDataset('data/', 'ml-1m', separator='::')
 
@@ -50,6 +53,11 @@ if __name__ == '__main__':
             best_epoch['prec'] = prec
             best_epoch['recall'] = recall
             best_epoch['ndcg'] = ndcg
+
+            if epoch >= 20:
+                train_tensor = torch.FloatTensor(dataset.train_matrix)
+                user_embedding = model.calc_user_embedding(train_tensor, test_batcher)
+                save_user_embdding(data_dir, data_name, user_embedding)
 
     print_res('Best Epoch: %3d, Prec: %.4f, Recall: %.4f, NDCG: %.4f'
               % (best_epoch['epoch'], best_epoch['prec'], best_epoch['recall'], best_epoch['ndcg']))
