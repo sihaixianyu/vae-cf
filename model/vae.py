@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..batcher import BaseBatcher
+from ..batcher import Batcher
 
 
 class VAE(nn.Module):
@@ -61,7 +61,7 @@ class VAE(nn.Module):
         else:
             return y
 
-    def calc_user_embedding(self, x: torch.FloatTensor, test_batcher: BaseBatcher):
+    def calc_user_embedding(self, x: torch.FloatTensor, test_batcher: Batcher):
         with torch.no_grad():
             user_embedding = torch.zeros(x.shape[0], self.enc_dims[-1])
 

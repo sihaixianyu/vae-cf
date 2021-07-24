@@ -4,7 +4,7 @@ import pickle
 from process import process
 
 
-class BaseDataset:
+class Dataset:
     def __init__(self, data_dir, data_name, leave_k=5, min_item_per_user=10, min_user_per_item=1, separator=',',
                  order_by_popularity=True):
         self.data_dir = data_dir

@@ -3,8 +3,8 @@ import time
 import torch
 import torch.optim as optim
 
-from batcher import BaseBatcher
-from dataset import BaseDataset
+from batcher import Batcher
+from dataset import Dataset
 from evaluator import Evaluator
 from model import VAE
 from trainer import Trainer
@@ -15,10 +15,10 @@ if __name__ == '__main__':
     data_name = 'ml-1m'
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    dataset = BaseDataset('data/', 'ml-1m', separator='::')
+    dataset = Dataset('data/', 'ml-1m', separator='::')
 
-    train_batcher = BaseBatcher(dataset, batch_size=512, shuffle=True)
-    test_batcher = BaseBatcher(dataset, batch_size=1024, shuffle=True)
+    train_batcher = Batcher(dataset, batch_size=512, shuffle=True)
+    test_batcher = Batcher(dataset, batch_size=1024, shuffle=True)
 
     enc_dec_dims = [dataset.item_num]
     enc_dec_dims.extend([300])

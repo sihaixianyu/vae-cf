@@ -3,12 +3,12 @@ import torch
 import torch.nn.functional as F
 from torch.optim import Optimizer
 
-from batcher import BaseBatcher
+from batcher import Batcher
 from vae import VAE
 
 
 class Trainer:
-    def __init__(self, batcher: BaseBatcher, model: VAE, optimizer: Optimizer):
+    def __init__(self, batcher: Batcher, model: VAE, optimizer: Optimizer):
         self.batcher = batcher
         self.model = model
         self.optimizer = optimizer

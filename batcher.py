@@ -1,10 +1,10 @@
 import numpy as np
 
-from dataset import BaseDataset
+from dataset import Dataset
 
 
-class BaseBatcher:
-    def __init__(self, dataset: BaseDataset, batch_size=256, shuffle=False):
+class Batcher:
+    def __init__(self, dataset: Dataset, batch_size=256, shuffle=False):
         self.dataset = dataset
         self.batch_size = batch_size
         self.shuffle = shuffle

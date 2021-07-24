@@ -3,12 +3,12 @@ import math
 import numpy as np
 import torch
 
-from batcher import BaseBatcher
-from vae import VAE
+from batcher import Batcher
+from model import VAE
 
 
 class Evaluator:
-    def __init__(self, batcher: BaseBatcher, model: VAE, top_k=20):
+    def __init__(self, batcher: Batcher, model: VAE, top_k=10):
         self.batcher = batcher
         self.model = model
         self.top_k = top_k
